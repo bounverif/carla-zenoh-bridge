@@ -1,0 +1,2 @@
+carla_port=2000
+zenoh_port=7447
