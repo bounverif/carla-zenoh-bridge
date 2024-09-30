@@ -13,7 +13,8 @@ VehicleSim::VehicleSim(std::string host, uint16_t port, carla::ActorId actor_id)
 
     // connect to vehicle
     auto world = client.GetWorld();
-    this->actor = world.GetActor(actor_id);
+    auto actor = world.GetActor(actor_id);
+    this->actor = boost::static_pointer_cast<cc::Actor>(actor);
 }
 
 

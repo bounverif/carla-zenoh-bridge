@@ -79,16 +79,10 @@ int main(int argc, const char *argv[]) {
     std::cout << "Loading world: " << town_name << std::endl;
     auto world = client.LoadWorld(town_name);
 
-    std::cout << "1" << std::endl;
-
     // Get a random vehicle blueprint.
     auto blueprint_library = world.GetBlueprintLibrary();
 
-    std::cout << "2" << std::endl;
-
     auto vehicles = blueprint_library->Filter("vehicle");
-
-    std::cout << "3" << std::endl;
     
     auto blueprint = RandomChoice(*vehicles, rng);
 
@@ -107,20 +101,20 @@ int main(int argc, const char *argv[]) {
     // Spawn the vehicle.
     auto actor = world.SpawnActor(blueprint, transform);
     std::cout << "Spawned " << actor->GetDisplayId() << '\n';
-    auto vehicle = boost::static_pointer_cast<cc::Vehicle>(actor);
+    // auto vehicle = boost::static_pointer_cast<cc::Vehicle>(actor);
 
     // Apply control to vehicle.
-    cc::Vehicle::Control control;
-    control.throttle = 1.0f;
-    vehicle->ApplyControl(control);
+    // cc::Vehicle::Control control;
+    // control.throttle = 1.0f;
+    // vehicle->ApplyControl(control);
 
     // Move spectator so we can see the vehicle from the simulator window.
-    auto spectator = world.GetSpectator();
-    transform.location += 32.0f * transform.GetForwardVector();
-    transform.location.z += 2.0f;
-    transform.rotation.yaw += 180.0f;
-    transform.rotation.pitch = -15.0f;
-    spectator->SetTransform(transform);
+    // auto spectator = world.GetSpectator();
+    // transform.location += 32.0f * transform.GetForwardVector();
+    // transform.location.z += 2.0f;
+    // transform.rotation.yaw += 180.0f;
+    // transform.rotation.pitch = -15.0f;
+    // spectator->SetTransform(transform);
 
 /*
     // Find a camera blueprint.
@@ -146,9 +140,6 @@ int main(int argc, const char *argv[]) {
     // Remove actors from the simulation.
     camera->Destroy();
 */
-    vehicle->Destroy();
-    std::cout << "Actors destroyed." << std::endl;
-
   } catch (const cc::TimeoutException &e) {
     std::cout << '\n' << e.what() << std::endl;
     return 1;

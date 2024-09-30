@@ -26,17 +26,16 @@ build-controls:
 
 
 
+spawn: run-spawner
 
-test: run-test
+run-spawner: build-spawner
+	$(call log,Running spawner.cpp...)
+	@$(BUILDDIR)/spawner $(ARGS)
 
-run-test: build-test
-	$(call log,Running test.cpp...)
-	@$(BUILDDIR)/test $(ARGS)
-
-build-test:
-	$(call log,Compiling test.cpp...)
+build-spawner:
+	$(call log,Compiling spawner.cpp...)
 	@mkdir -p $(BUILDDIR)
 	@$(CXX) $(CXXFLAGS) -I $(INCDIR) -isystem $(INCDIR)/system -L $(INSTALLDIR)/lib \
-		-o $(BUILDDIR)/test test.cpp \
+		-o $(BUILDDIR)/spawner spawner.cpp \
 		-Wl,-Bstatic -lcarla_client -lrpc -lboost_filesystem -Wl,-Bdynamic \
 		-lpng -ltiff -ljpeg -lRecast -lDetour -lDetourCrowd
