@@ -16,34 +16,38 @@ clean:
 
 bridge: run-bridge
 
-run-bridge: $(BUILDDIR)/bridge
+run-bridge: build-bridge
 	$(call log,Running carla_zenoh_bridge.cpp...)
 	@$(BUILDDIR)/bridge $(ARGS)
 
 build-bridge: carla_zenoh_bridge.cpp VehicleSim.cpp VehicleSim.hpp
 	$(call log,Compiling source files...)
-	@$(CXX) $(CXXFLAGS) -I $(INCDIR) -isystem $(INCDIR)/system -L $(INSTALLDIR)/lib \
+	@$(CXX) $(CXXFLAGS) -I $(INCDIR) -isystem $(INCDIR)/system \
+		-L$(INSTALLDIR)/lib -L/usr/local/lib/ \
 		-o $(BUILDDIR)/bridge carla_zenoh_bridge.cpp VehicleSim.cpp \
-		-Wl,-Bstatic -lcarla_client -lrpc -lboost_filesystem -Wl,-Bdynamic \
-		-lpng -ltiff -ljpeg -lRecast -lDetour -lDetourCrowd -lzenohc
+		-Wl,-Bstatic -lcarla_client -lrpc -lboost_filesystem \
+		-Wl,-Bdynamic -lpng -ltiff -ljpeg -lRecast -lDetour -lDetourCrowd -lzenohc
 
 
 controls: run-controls
 
-run-controls: $(BUILDDIR)/control_data
+run-controls: build-controls
 	$(call log,Running control_data.cpp...)
 	@$(BUILDDIR)/control_data $(ARGS)
 
 build-controls: control_data.cpp
 	$(call log,Compiling control_data.cpp...)
 	@mkdir -p $(BUILDDIR)
-	@$(CXX) $(CXXFLAGS) -I $(INCDIR) -o $(BUILDDIR)/control_data control_data.cpp
+	@$(CXX) $(CXXFLAGS) -I $(INCDIR) \
+	-L/usr/local/lib \
+	-o $(BUILDDIR)/control_data control_data.cpp \
+	-lzenohc
 
 
 
 spawn: run-spawner
 
-run-spawner: $(BUILDDIR)/spawner
+run-spawner: build-spawner
 	$(call log,Running spawner.cpp...)
 	@$(BUILDDIR)/spawner $(ARGS)
 

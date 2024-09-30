@@ -6,7 +6,10 @@
 
 #include "VehicleSim.hpp"
 
+using namespace zenoh;
+
 std::map<std::string, std::string> config;
+boost::shared_ptr<cc::Vehicle> vehicle;
 
 int main() {
     // parse the config file
@@ -44,6 +47,35 @@ int main() {
     //     port = std::stoi(config.find("carla_port"));
     // }
 
-    VehicleSim sim = VehicleSim(host, port);
+    auto client = cc::Client(host, port);
+    client.SetTimeout(40s);
+
+    auto world = client.GetWorld();
+    auto temp_vehiclesList = world.GetVehiclesLightStates();
+    auto actorId = temp_vehiclesList.begin()->first;
+    auto actor = world.GetActor(actorId);
+    std::cout << "Connected to actor with ID: " << actor->GetId() << std::endl;
+    
+    vehicle = boost::static_pointer_cast<cc::Vehicle>(actor);
+
+    // zenoh declarations
+    Config config = Config::create_default();
+    auto session = Session::open(std::move(config));
+
+    std::string sub_prefix = "carla/" + std::to_string(vehicle->GetId());
+
+    KeyExpr th_expr(sub_prefix + "/throttle");
+    KeyExpr st_expr(sub_prefix + "/steer");
+    KeyExpr br_expr(sub_prefix + "/brake");
+
+
+    auto ls_th = session.declare_subscriber(th_expr, &listener::l_throttle, closures::none);
+    auto ls_st = session.declare_subscriber(st_expr, &listener::l_steer, closures::none);
+    auto ls_br = session.declare_subscriber(br_expr, &listener::l_brake, closures::none);
+
+    while (true){
+        std::this_thread::sleep_for(1s);
+    }
+
 
 }
