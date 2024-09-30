@@ -4,7 +4,7 @@ BUILDDIR=$(CURDIR)/build
 
 CC=/usr/bin/gcc
 CXX=/usr/bin/g++
-CXXFLAGS=-std=c++14 -pthread -fPIC  -O3 -DNDEBUG -Werror -Wall -Wextra
+CXXFLAGS=-std=c++17 -pthread -fPIC  -O3 -DNDEBUG -Werror -Wall -Wextra
 
 define log
 	@echo "\033[1;35m$(1)\033[0m"
@@ -13,30 +13,44 @@ endef
 clean:
 	@rm -rf $(BUILDDIR)
 
+
+bridge: run-bridge
+
+run-bridge: $(BUILDDIR)/bridge
+	$(call log,Running carla_zenoh_bridge.cpp...)
+	@$(BUILDDIR)/bridge $(ARGS)
+
+build-bridge: carla_zenoh_bridge.cpp VehicleSim.cpp VehicleSim.hpp
+	$(call log,Compiling source files...)
+	@$(CXX) $(CXXFLAGS) -I $(INCDIR) -isystem $(INCDIR)/system -L $(INSTALLDIR)/lib \
+		-o $(BUILDDIR)/bridge carla_zenoh_bridge.cpp VehicleSim.cpp \
+		-Wl,-Bstatic -lcarla_client -lrpc -lboost_filesystem -Wl,-Bdynamic \
+		-lpng -ltiff -ljpeg -lRecast -lDetour -lDetourCrowd -lzenohc
+
+
 controls: run-controls
 
-run-controls: build-controls
+run-controls: $(BUILDDIR)/control_data
 	$(call log,Running control_data.cpp...)
 	@$(BUILDDIR)/control_data $(ARGS)
 
-build-controls:
+build-controls: control_data.cpp
 	$(call log,Compiling control_data.cpp...)
 	@mkdir -p $(BUILDDIR)
 	@$(CXX) $(CXXFLAGS) -I $(INCDIR) -o $(BUILDDIR)/control_data control_data.cpp
 
 
 
+spawn: run-spawner
 
-test: run-test
+run-spawner: $(BUILDDIR)/spawner
+	$(call log,Running spawner.cpp...)
+	@$(BUILDDIR)/spawner $(ARGS)
 
-run-test: build-test
-	$(call log,Running test.cpp...)
-	@$(BUILDDIR)/test $(ARGS)
-
-build-test:
-	$(call log,Compiling test.cpp...)
+build-spawner: spawner.cpp
+	$(call log,Compiling spawner.cpp...)
 	@mkdir -p $(BUILDDIR)
 	@$(CXX) $(CXXFLAGS) -I $(INCDIR) -isystem $(INCDIR)/system -L $(INSTALLDIR)/lib \
-		-o $(BUILDDIR)/test test.cpp \
+		-o $(BUILDDIR)/spawner spawner.cpp \
 		-Wl,-Bstatic -lcarla_client -lrpc -lboost_filesystem -Wl,-Bdynamic \
 		-lpng -ltiff -ljpeg -lRecast -lDetour -lDetourCrowd
