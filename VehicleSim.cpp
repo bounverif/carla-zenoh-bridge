@@ -10,6 +10,7 @@
     This is a temporary constructor, built for quick testing of zenoh networking.
     Change it later with proper vehicle connection handling as well as vehicle select.
     TODO proper vehicle selection functionality
+    TODO no existing vehicle throws a segfault
 */
 VehicleSim::VehicleSim(std::string host, uint16_t port){
     // connect to the simulation.
@@ -22,6 +23,7 @@ VehicleSim::VehicleSim(std::string host, uint16_t port){
         auto actorId = temp_vehiclesList.begin()->first;
         auto actor = world.GetActor(actorId);
         this->actor = actor;
+        std::cout << "Connected to actor with ID: " << this->actor->GetId() << std::endl;
     }
     catch(...) {
         std::cerr << "No actor found" << std::endl;
