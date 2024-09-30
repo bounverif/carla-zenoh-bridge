@@ -21,5 +21,4 @@ int main() {
         config.insert({line.substr(0, pos), line.substr(pos + 1)});
     }
 
-
 }
