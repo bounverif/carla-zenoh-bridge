@@ -74,6 +74,14 @@ int main(int argc, const char *argv[]) {
     std::cout << "Client API version : " << client.GetClientVersion() << '\n';
     std::cout << "Server API version : " << client.GetServerVersion() << '\n';
 
+    /*
+      TODO Add town select as well as random towns.
+          [] Town select
+          [] Vehicle blueprint select
+          [] Spawn point select
+        Might be passed as arguments
+    */
+
     // Load a random town.
     auto town_name = RandomChoice(client.GetAvailableMaps(), rng);
     std::cout << "Loading world: " << town_name << std::endl;

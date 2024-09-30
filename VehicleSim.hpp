@@ -35,8 +35,11 @@ class VehicleSim {
     cc::Vehicle::Control control;
 
     public:
-        VehicleSim(std::string host, uint16_t port, carla::ActorId actor_id);
+        VehicleSim(std::string host, uint16_t port);
+        // TODO complete constructor below
+        // VehicleSim(std::string host, uint16_t port, carla::ActorId actor_id);
 
+        void getActor();
         void l_throttle(const zenoh::Sample &sample);
         void l_steer(const zenoh::Sample &sample);
         void l_brake(const zenoh::Sample &sample);

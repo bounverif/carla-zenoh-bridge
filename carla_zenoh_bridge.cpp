@@ -4,10 +4,16 @@
 #include <map>
 #include <vector>
 
+#include "VehicleSim.hpp"
+
 std::map<std::string, std::string> config;
 
 int main() {
     // parse the config file
+    /*
+        TODO Add proper config file support:
+            [] .yml or .json
+    */
     std::ifstream configFile("config.txt");
     
     if (!configFile.is_open()){
@@ -20,5 +26,24 @@ int main() {
         std::size_t pos = line.find('=');
         config.insert({line.substr(0, pos), line.substr(pos + 1)});
     }
+
+    std::string host = "localhost";
+    uint16_t port = 2000u;
+
+    /*
+        TODO Add proper connection configuration for CARLA:
+        [x] defaults to localhost:2000
+        [] port configuration
+        [] host configuration
+    */
+    // if (config.find("carla_port") == config.end()){
+    //     std::cout << "No configuration for CARLA found; using default localhost:2000" << std::endl;
+    // }
+ 
+    // else{
+    //     port = std::stoi(config.find("carla_port"));
+    // }
+
+    VehicleSim sim = VehicleSim(host, port);
 
 }

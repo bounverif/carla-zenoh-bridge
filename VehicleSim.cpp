@@ -6,17 +6,27 @@
 #define log(x)
 #endif
 
-VehicleSim::VehicleSim(std::string host, uint16_t port, carla::ActorId actor_id){
+/*
+    This is a temporary constructor, built for quick testing of zenoh networking.
+    Change it later with proper vehicle connection handling as well as vehicle select.
+    TODO proper vehicle selection functionality
+*/
+VehicleSim::VehicleSim(std::string host, uint16_t port){
     // connect to the simulation.
     auto client = cc::Client(host, port);
     client.SetTimeout(40s);
 
-    // connect to vehicle
-    auto world = client.GetWorld();
-    auto actor = world.GetActor(actor_id);
-    this->actor = boost::static_pointer_cast<cc::Actor>(actor);
+    try{
+        auto world = client.GetWorld();
+        auto temp_vehiclesList = world.GetVehiclesLightStates();
+        auto actorId = temp_vehiclesList.begin()->first;
+        auto actor = world.GetActor(actorId);
+        this->actor = actor;
+    }
+    catch(...) {
+        std::cerr << "No actor found" << std::endl;
+    }
 }
-
 
 // listen to carla/<actor_id>/throttle
 void VehicleSim::l_throttle(const zenoh::Sample &sample){
