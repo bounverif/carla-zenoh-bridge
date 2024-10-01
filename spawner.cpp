@@ -109,6 +109,12 @@ int main(int argc, const char *argv[]) {
     // Spawn the vehicle.
     auto actor = world.SpawnActor(blueprint, transform);
     std::cout << "Spawned " << actor->GetDisplayId() << '\n';
+
+    /*
+      TODO Spawn camera fixed to the actor for debugging purposes.
+          May need to be optional for allowing windowless simulator execution.
+    */
+
     // auto vehicle = boost::static_pointer_cast<cc::Vehicle>(actor);
 
     // Apply control to vehicle.

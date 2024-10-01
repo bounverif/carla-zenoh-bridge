@@ -8,6 +8,10 @@
 
 using namespace zenoh;
 
+/*
+    TODO Run this program with mac for full zenoh configurability testing
+*/
+
 std::map<std::string, std::string> config;
 boost::shared_ptr<cc::Vehicle> vehicle;
 
@@ -67,11 +71,19 @@ int main() {
     KeyExpr th_expr(sub_prefix + "/throttle");
     KeyExpr st_expr(sub_prefix + "/steer");
     KeyExpr br_expr(sub_prefix + "/brake");
+    KeyExpr rv_expr(sub_prefix + "/reverse");
+    KeyExpr hb_expr(sub_prefix + "/handbrake");
+    KeyExpr gr_expr(sub_prefix + "/gear");
+    KeyExpr mg_expr(sub_prefix + "/manual-gear-shift");
 
 
     auto ls_th = session.declare_subscriber(th_expr, &listener::l_throttle, closures::none);
     auto ls_st = session.declare_subscriber(st_expr, &listener::l_steer, closures::none);
     auto ls_br = session.declare_subscriber(br_expr, &listener::l_brake, closures::none);
+    auto ls_rv = session.declare_subscriber(rv_expr, &listener::l_reverse, closures::none);
+    auto ls_hb = session.declare_subscriber(hb_expr, &listener::l_handbrake, closures::none);
+    auto ls_gr = session.declare_subscriber(gr_expr, &listener::l_gear, closures::none);
+    auto ls_mg = session.declare_subscriber(mg_expr, &listener::l_manual_gear, closures::none);
 
     while (true){
         std::this_thread::sleep_for(1s);
