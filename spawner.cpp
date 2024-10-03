@@ -115,6 +115,15 @@ int main(int argc, const char *argv[]) {
           May need to be optional for allowing windowless simulator execution.
     */
 
+    auto camera_bp = blueprint_library->Find("sensor.other.collision");
+    auto camera = world.SpawnActor(*camera_bp, cg::Transform{cg::Location{0.0f, 5.0f, 1.0f}, cg::Rotation{0.0f, -90.0f, 0.0f}}, actor.get());
+
+    auto spectator = world.GetSpectator();
+    while (true){
+      spectator->SetTransform(camera->GetTransform());
+      std::this_thread::sleep_for(200ms);
+    }
+
     // auto vehicle = boost::static_pointer_cast<cc::Vehicle>(actor);
 
     // Apply control to vehicle.

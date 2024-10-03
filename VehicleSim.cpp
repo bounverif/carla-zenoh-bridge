@@ -89,7 +89,7 @@ void listener::l_gear(const zenoh::Sample &sample){
 }
 
 void listener::l_handbrake(const zenoh::Sample &sample){
-    bool x = sample.get_payload().deserialize<bool>();
+    bool x = sample.get_payload().deserialize<int>() == 1;
     std::cout << "Received " << x << " at " << sample.get_keyexpr().as_string_view() << std::endl;
     cc::Vehicle::Control control;
     control.hand_brake = x;
@@ -98,7 +98,7 @@ void listener::l_handbrake(const zenoh::Sample &sample){
 }
 
 void listener::l_reverse(const zenoh::Sample &sample){
-    bool x = sample.get_payload().deserialize<bool>();
+    bool x = sample.get_payload().deserialize<int>() == 1;
     std::cout << "Received " << x << " at " << sample.get_keyexpr().as_string_view() << std::endl;
     cc::Vehicle::Control control;
     control.reverse = x;
@@ -106,7 +106,7 @@ void listener::l_reverse(const zenoh::Sample &sample){
 }
 
 void listener::l_manual_gear(const zenoh::Sample &sample){
-    bool x = sample.get_payload().deserialize<bool>();
+    bool x = sample.get_payload().deserialize<int>() == 1;
     std::cout << "Received " << x << " at " << sample.get_keyexpr().as_string_view() << std::endl;
     cc::Vehicle::Control control;
     control.manual_gear_shift = x;
