@@ -68,6 +68,8 @@ int main() {
 
     std::string sub_prefix = "carla/" + std::to_string(vehicle->GetId());
 
+
+    // Vehicle -> CARLA 
     KeyExpr th_expr(sub_prefix + "/throttle");
     KeyExpr st_expr(sub_prefix + "/steer");
     KeyExpr br_expr(sub_prefix + "/brake");
@@ -85,8 +87,26 @@ int main() {
     auto ls_gr = session.declare_subscriber(gr_expr, &listener::l_gear, closures::none);
     auto ls_mg = session.declare_subscriber(mg_expr, &listener::l_manual_gear, closures::none);
 
+    // CARLA -> Vehicle
+    KeyExpr AcclExpr(sub_prefix + "/acceleration");
+    KeyExpr AngVelExpr(sub_prefix + "/angular-velocity");
+    KeyExpr TfExpr(sub_prefix + "/transform");
+    KeyExpr VelExpr(sub_prefix + "/velocity");
+
+    auto AcclPub = session.declare_publisher(AcclExpr);
+    auto AngVelPub = session.declare_publisher(AngVelExpr);
+    auto TfPub = session.declare_publisher(TfExpr);
+    auto VelPub = session.declare_publisher(VelExpr);
+
+
+
+
     while (true){
-        std::this_thread::sleep_for(1s);
+        std::this_thread::sleep_for(100ms);
+        AcclPub.put(vehicle->GetAcceleration());
+        AngVelPub.put(vehicle->GetAngularVelocity());
+        TfPub.put(vehicle->GetTransform());
+        VelPub.put(vehicle->GetVelocity());
     }
 
 
