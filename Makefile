@@ -10,32 +10,24 @@ define log
 	@echo "\033[1;35m$(1)\033[0m"
 endef
 
-clean:
-	@rm -rf $(BUILDDIR)
-
-
-bridge: run-bridge
-
-run-bridge: build-bridge
+bridge: $(BUILDDIR)/bridge
 	$(call log,Running carla_zenoh_bridge.cpp...)
 	@$(BUILDDIR)/bridge $(ARGS)
 
-build-bridge: carla_zenoh_bridge.cpp VehicleSim.cpp VehicleSim.hpp
+$(BUILDDIR)/bridge: carla-zenoh-bridge.cpp Connection.cpp Connection.hpp listeners.cpp listeners.hpp
 	$(call log,Compiling source files...)
 	@$(CXX) $(CXXFLAGS) -I $(INCDIR) -isystem $(INCDIR)/system \
 		-L$(INSTALLDIR)/lib -L/usr/local/lib/ \
-		-o $(BUILDDIR)/bridge carla_zenoh_bridge.cpp VehicleSim.cpp \
+		-o $(BUILDDIR)/bridge carla-zenoh-bridge.cpp listeners.cpp Connection.cpp \
 		-Wl,-Bstatic -lcarla_client -lrpc -lboost_filesystem \
 		-Wl,-Bdynamic -lpng -ltiff -ljpeg -lRecast -lDetour -lDetourCrowd -lzenohc
 
 
-controls: run-controls
-
-run-controls: build-controls
+controls: $(BUILDDIR)/control_data
 	$(call log,Running control_data.cpp...)
 	@$(BUILDDIR)/control_data $(ARGS)
 
-build-controls: control_data.cpp
+$(BUILDDIR)/control_data: control_data.cpp
 	$(call log,Compiling control_data.cpp...)
 	@mkdir -p $(BUILDDIR)
 	@$(CXX) $(CXXFLAGS) -I $(INCDIR) \
@@ -45,16 +37,33 @@ build-controls: control_data.cpp
 
 
 
-spawn: run-spawner
 
-run-spawner: build-spawner
+spawn: $(BUILDDIR)/spawner
 	$(call log,Running spawner.cpp...)
 	@$(BUILDDIR)/spawner $(ARGS)
 
-build-spawner: spawner.cpp
+$(BUILDDIR)/spawner: spawner.cpp
 	$(call log,Compiling spawner.cpp...)
 	@mkdir -p $(BUILDDIR)
 	@$(CXX) $(CXXFLAGS) -I $(INCDIR) -isystem $(INCDIR)/system -L $(INSTALLDIR)/lib \
 		-o $(BUILDDIR)/spawner spawner.cpp \
 		-Wl,-Bstatic -lcarla_client -lrpc -lboost_filesystem -Wl,-Bdynamic \
 		-lpng -ltiff -ljpeg -lRecast -lDetour -lDetourCrowd
+
+
+test: $(BUILDDIR)/test_listener
+	$(call log, Running test_listener...)
+	@$(BUILDDIR)/test_listener $(ARGS)
+
+$(BUILDDIR)/test_listener: test_listener.cpp
+	$(call log,Compiling test_listener.cpp...)
+	@$(CXX) $(CXXFLAGS) -I $(INCDIR) -isystem $(INCDIR)/system -L $(INSTALLDIR)/lib \
+		-o $(BUILDDIR)/test_listener test_listener.cpp \
+		-Wl,-Bstatic -lcarla_client -lrpc -lboost_filesystem -Wl,-Bdynamic \
+		-lpng -ltiff -ljpeg -lRecast -lDetour -lDetourCrowd -lzenohc
+
+
+.PHONY: clean
+clean:
+	$(call log,Removing build directory...)
+	@rm -rf $(BUILDDIR)
