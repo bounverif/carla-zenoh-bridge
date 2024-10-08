@@ -51,6 +51,15 @@ int main() {
     //     port = std::stoi(config.find("carla_port"));
     // }
 
+    /*
+        TODO Failsafe behavior on session connection error.
+    */
+    zenoh::Config config = zenoh::Config::create_default();
+    auto session = zenoh::Session::open(std::move(config));
+
+    Connection conn(session);
+
+
     auto client = cc::Client(host, port);
     client.SetTimeout(40s);
 
@@ -62,18 +71,12 @@ int main() {
     
     boost::shared_ptr<cc::Vehicle> vehicle = boost::static_pointer_cast<cc::Vehicle>(actor);
 
-    /*
-        TODO Failsafe behavior on session connection error.
-    */
-    zenoh::Config config = zenoh::Config::create_default();
-    auto session = zenoh::Session::open(std::move(config));
-
-    Connection conn(session, vehicle);
+    Vehicle v(conn, vehicle);
 
 
     while (true){
         std::this_thread::sleep_for(100ms);
-        conn.publish();
+        v.publish();
     }
 
 

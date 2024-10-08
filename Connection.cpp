@@ -11,13 +11,26 @@
 */
 
 /*
-    Connect to the zenoh session and subscribe to relevant topics.
     TODO Add zenoh configurability & multiple vehicles support
         [] Zenoh session target can be configured
         [] In the case of multiple vehicles, will subscribe to corresponding topics and listen from them
 */
 
-void Connection::bindSubscribers(){
+/*
+    TODO Add failsafe behavior for subscribers & publishers
+        May be redundant if session connection errors are properly handled
+*/
+
+Vehicle::Vehicle(Connection &connection, boost::shared_ptr<cc::Vehicle> vehicle) 
+: connection(connection), vehicle(vehicle) {
+        this->bindSubscribers();
+        this->bindPublishers();
+
+        connection.vehicleList.push_back(this);
+};
+
+
+void Vehicle::bindSubscribers(){
 
     using namespace std::placeholders;
 
@@ -31,13 +44,13 @@ void Connection::bindSubscribers(){
     auto f_reverse = std::bind(listener::l_reverse, _1, this->vehicle);
     auto f_manual_gear = std::bind(listener::l_manual_gear, _1, this->vehicle);
 
-    auto ls_th = this->session.declare_subscriber(baseExpr + "/throttle", f_throttle, zenoh::closures::none);
-    auto ls_st = this->session.declare_subscriber(baseExpr + "/steer", f_steer, zenoh::closures::none);
-    auto ls_br = this->session.declare_subscriber(baseExpr + "/brake", f_brake, zenoh::closures::none);
-    auto ls_rv = this->session.declare_subscriber(baseExpr + "/reverse", f_reverse, zenoh::closures::none);
-    auto ls_hb = this->session.declare_subscriber(baseExpr + "/handbrake", f_handbrake, zenoh::closures::none);
-    auto ls_gr = this->session.declare_subscriber(baseExpr + "/gear", f_gear, zenoh::closures::none);
-    auto ls_mg = this->session.declare_subscriber(baseExpr + "/manual-gear-shift", f_manual_gear, zenoh::closures::none);
+    auto ls_th = this->connection.session.declare_subscriber(baseExpr + "/throttle", f_throttle, zenoh::closures::none);
+    auto ls_st = this->connection.session.declare_subscriber(baseExpr + "/steer", f_steer, zenoh::closures::none);
+    auto ls_br = this->connection.session.declare_subscriber(baseExpr + "/brake", f_brake, zenoh::closures::none);
+    auto ls_rv = this->connection.session.declare_subscriber(baseExpr + "/reverse", f_reverse, zenoh::closures::none);
+    auto ls_hb = this->connection.session.declare_subscriber(baseExpr + "/handbrake", f_handbrake, zenoh::closures::none);
+    auto ls_gr = this->connection.session.declare_subscriber(baseExpr + "/gear", f_gear, zenoh::closures::none);
+    auto ls_mg = this->connection.session.declare_subscriber(baseExpr + "/manual-gear-shift", f_manual_gear, zenoh::closures::none);
 
     this->subscribers.push_back(std::move(ls_th));
     this->subscribers.push_back(std::move(ls_st)); 
@@ -49,14 +62,14 @@ void Connection::bindSubscribers(){
 
 }
 
-void Connection::bindPublishers(){
+void Vehicle::bindPublishers(){
 
     std::string baseExpr = "carla/" + std::to_string(this->vehicle->GetId());
 
-    auto AcclPub = this->session.declare_publisher(baseExpr + "/acceleration");
-    auto AngVelPub = this->session.declare_publisher(baseExpr + "/angular-velocity");
-    auto TfPub = this->session.declare_publisher(baseExpr + "/transform");
-    auto VelPub = this->session.declare_publisher(baseExpr + "/velocity");
+    auto AcclPub =      this->connection.session.declare_publisher(baseExpr + "/acceleration");
+    auto AngVelPub =    this->connection.session.declare_publisher(baseExpr + "/angular-velocity");
+    auto TfPub =        this->connection.session.declare_publisher(baseExpr + "/transform");
+    auto VelPub =       this->connection.session.declare_publisher(baseExpr + "/velocity");
 
     this->publishers.push_back(std::move(AcclPub));
     this->publishers.push_back(std::move(AngVelPub));
@@ -66,14 +79,7 @@ void Connection::bindPublishers(){
 
 }
 
-Connection::Connection(zenoh::Session &session, boost::shared_ptr<cc::Vehicle> vehicle) : session{session}{
-
-    this->vehicle = vehicle;
-    this->bindSubscribers();
-    this->bindPublishers();
-}
-
-void Connection::publish(){
+void Vehicle::publish(){
 
     this->publishers[0].put(this->vehicle->GetAcceleration().Length());
     this->publishers[1].put(this->vehicle->GetAngularVelocity().Length());

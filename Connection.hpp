@@ -27,9 +27,22 @@ namespace cc = carla::client;
 
 #include <zenoh.hxx>
 
+class Vehicle;
+
 class Connection {
+   public:
+        std::vector<Vehicle*> vehicleList;
+        zenoh::Session &session;
+
+        Connection(zenoh::Session &session) : session{session} {};
+        // void publish();
+};
+
+class Vehicle {
+    
+    Connection& connection;
     boost::shared_ptr<cc::Vehicle> vehicle;
-    zenoh::Session &session;
+
     std::vector<zenoh::Subscriber<void>> subscribers;
     std::vector<zenoh::Publisher> publishers;
 
@@ -37,8 +50,7 @@ class Connection {
     void bindPublishers();
 
     public:
-        Connection();
-        Connection(zenoh::Session &session, boost::shared_ptr<cc::Vehicle> vehicle);
+        Vehicle(Connection &connection, boost::shared_ptr<cc::Vehicle> vehicle);
         void publish();
 };
 
