@@ -103,10 +103,10 @@ int main() {
 
     while (true){
         std::this_thread::sleep_for(100ms);
-        AcclPub.put(vehicle->GetAcceleration());
-        AngVelPub.put(vehicle->GetAngularVelocity());
-        TfPub.put(vehicle->GetTransform());
-        VelPub.put(vehicle->GetVelocity());
+        AcclPub.put(vehicle->GetAcceleration().Length());
+        AngVelPub.put(vehicle->GetAngularVelocity().Length());
+        TfPub.put(vehicle->GetTransform().GetForwardVector().Length());
+        VelPub.put(vehicle->GetVelocity().Length());
     }
 
 

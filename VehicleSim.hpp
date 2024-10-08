@@ -23,6 +23,7 @@
 #include <carla/sensor/data/Image.h>
 
 namespace cc = carla::client;
+namespace cg = carla::geom;
 
 using namespace std::chrono_literals;
 

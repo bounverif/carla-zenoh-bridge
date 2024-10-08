@@ -58,3 +58,15 @@ build-spawner: spawner.cpp
 		-o $(BUILDDIR)/spawner spawner.cpp \
 		-Wl,-Bstatic -lcarla_client -lrpc -lboost_filesystem -Wl,-Bdynamic \
 		-lpng -ltiff -ljpeg -lRecast -lDetour -lDetourCrowd
+
+
+test: build-test
+	$(call log, Running test_listener...)
+	@$(BUILDDIR)/test_listener $(ARGS)
+
+build-test: test_listener.cpp
+	$(call log,Compiling test_listener.cpp...)
+	@$(CXX) $(CXXFLAGS) -I $(INCDIR) -isystem $(INCDIR)/system -L $(INSTALLDIR)/lib \
+		-o $(BUILDDIR)/test_listener test_listener.cpp \
+		-Wl,-Bstatic -lcarla_client -lrpc -lboost_filesystem -Wl,-Bdynamic \
+		-lpng -ltiff -ljpeg -lRecast -lDetour -lDetourCrowd -lzenohc
