@@ -1,0 +1,29 @@
+syntax = "proto3"
+
+message Vector3D {
+    
+        float x = 1;
+        float y = 2;
+        float z = 3;
+
+}
+
+message Transform {
+
+    Vector3D position = 1;
+    Vector3D rotation = 2;
+}
+
+message VehicleOutgoing {
+
+    string name = 1;
+    Vector3D acceleration = 2;
+    Vector3D angularVelocity = 3;
+    Transform transform = 4;
+    Vector3D velocity = 5;
+}
+
+message Outgoing {
+
+    repeated VehicleOutgoing = 1;
+}

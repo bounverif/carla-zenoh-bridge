@@ -64,6 +64,12 @@ int main() {
     client.SetTimeout(40s);
 
     auto world = client.GetWorld();
+
+    // set sync mode
+    carla::rpc::EpisodeSettings settings;
+    settings.synchronous_mode = true;
+    world.ApplySettings(settings, 1s);
+
     auto temp_vehiclesList = world.GetVehiclesLightStates();
     auto actorId = temp_vehiclesList.begin()->first;
     auto actor = world.GetActor(actorId);
@@ -77,6 +83,7 @@ int main() {
     while (true){
         std::this_thread::sleep_for(100ms);
         v.publish();
+        world.Tick(10ms);
     }
 
 
