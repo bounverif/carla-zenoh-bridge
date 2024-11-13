@@ -57,7 +57,7 @@ int main() {
     zenoh::Config config = zenoh::Config::create_default();
     auto session = zenoh::Session::open(std::move(config));
 
-    Connection conn(session);
+    Context context(session);
 
 
     auto client = cc::Client(host, port);
@@ -71,19 +71,24 @@ int main() {
     world.ApplySettings(settings, 1s);
 
     auto temp_vehiclesList = world.GetVehiclesLightStates();
-    auto actorId = temp_vehiclesList.begin()->first;
-    auto actor = world.GetActor(actorId);
-    std::cout << "Connected to actor with ID: " << actor->GetId() << std::endl;
-    
-    boost::shared_ptr<cc::Vehicle> vehicle = boost::static_pointer_cast<cc::Vehicle>(actor);
+    for (size_t i = 0; i < temp_vehiclesList.size(); i++){
+        auto actorId = temp_vehiclesList[i].first;
+        std::cout << "Connecting to actor with ID: " << actorId << std::endl;
 
-    Vehicle v(conn, vehicle);
+        auto actor = world.GetActor(actorId);
+        std::cout << i << std::endl;
+        boost::shared_ptr<cc::Vehicle> vehicle = boost::static_pointer_cast<cc::Vehicle>(actor);
+        
+        context.addVehicle(vehicle);
+    }
 
 
     while (true){
         std::this_thread::sleep_for(100ms);
-        v.publish();
-        world.Tick(10ms);
+
+        context.publish();
+
+        world.Tick(40s);
     }
 
 

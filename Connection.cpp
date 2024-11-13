@@ -21,12 +21,15 @@
         May be redundant if session connection errors are properly handled
 */
 
-Vehicle::Vehicle(Connection &connection, boost::shared_ptr<cc::Vehicle> vehicle) 
-: connection(connection), vehicle(vehicle) {
+
+void Context::publish(){
+    for (auto &vehicle: this->vehicleList) vehicle.publish();
+}
+
+Vehicle::Vehicle(Context &context, boost::shared_ptr<cc::Vehicle> vehicle) 
+: context(context), vehicle(vehicle) {
         this->bindSubscribers();
         this->bindPublishers();
-
-        connection.vehicleList.push_back(this);
 };
 
 
@@ -44,13 +47,13 @@ void Vehicle::bindSubscribers(){
     auto f_reverse = std::bind(listener::l_reverse, _1, this->vehicle);
     auto f_manual_gear = std::bind(listener::l_manual_gear, _1, this->vehicle);
 
-    auto ls_th = this->connection.session.declare_subscriber(baseExpr + "/throttle", f_throttle, zenoh::closures::none);
-    auto ls_st = this->connection.session.declare_subscriber(baseExpr + "/steer", f_steer, zenoh::closures::none);
-    auto ls_br = this->connection.session.declare_subscriber(baseExpr + "/brake", f_brake, zenoh::closures::none);
-    auto ls_rv = this->connection.session.declare_subscriber(baseExpr + "/reverse", f_reverse, zenoh::closures::none);
-    auto ls_hb = this->connection.session.declare_subscriber(baseExpr + "/handbrake", f_handbrake, zenoh::closures::none);
-    auto ls_gr = this->connection.session.declare_subscriber(baseExpr + "/gear", f_gear, zenoh::closures::none);
-    auto ls_mg = this->connection.session.declare_subscriber(baseExpr + "/manual-gear-shift", f_manual_gear, zenoh::closures::none);
+    auto ls_th = this->context.session.declare_subscriber(baseExpr + "/throttle", f_throttle, zenoh::closures::none);
+    auto ls_st = this->context.session.declare_subscriber(baseExpr + "/steer", f_steer, zenoh::closures::none);
+    auto ls_br = this->context.session.declare_subscriber(baseExpr + "/brake", f_brake, zenoh::closures::none);
+    auto ls_rv = this->context.session.declare_subscriber(baseExpr + "/reverse", f_reverse, zenoh::closures::none);
+    auto ls_hb = this->context.session.declare_subscriber(baseExpr + "/handbrake", f_handbrake, zenoh::closures::none);
+    auto ls_gr = this->context.session.declare_subscriber(baseExpr + "/gear", f_gear, zenoh::closures::none);
+    auto ls_mg = this->context.session.declare_subscriber(baseExpr + "/manual-gear-shift", f_manual_gear, zenoh::closures::none);
 
     this->subscribers.push_back(std::move(ls_th));
     this->subscribers.push_back(std::move(ls_st)); 
@@ -66,10 +69,10 @@ void Vehicle::bindPublishers(){
 
     std::string baseExpr = "carla/" + std::to_string(this->vehicle->GetId());
 
-    auto AcclPub =      this->connection.session.declare_publisher(baseExpr + "/acceleration");
-    auto AngVelPub =    this->connection.session.declare_publisher(baseExpr + "/angular-velocity");
-    auto TfPub =        this->connection.session.declare_publisher(baseExpr + "/transform");
-    auto VelPub =       this->connection.session.declare_publisher(baseExpr + "/velocity");
+    auto AcclPub =      this->context.session.declare_publisher(baseExpr + "/acceleration");
+    auto AngVelPub =    this->context.session.declare_publisher(baseExpr + "/angular-velocity");
+    auto TfPub =        this->context.session.declare_publisher(baseExpr + "/transform");
+    auto VelPub =       this->context.session.declare_publisher(baseExpr + "/velocity");
 
     this->publishers.push_back(std::move(AcclPub));
     this->publishers.push_back(std::move(AngVelPub));
@@ -86,4 +89,8 @@ void Vehicle::publish(){
     this->publishers[2].put(this->vehicle->GetTransform().location.x);
     this->publishers[3].put(this->vehicle->GetVelocity().Length());
 
+}
+
+void Context::addVehicle(boost::shared_ptr<cc::Vehicle> vehicle){
+    this->vehicleList.push_back(std::move(Vehicle(*this, vehicle)));
 }
