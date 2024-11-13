@@ -29,18 +29,20 @@ namespace cc = carla::client;
 
 class Vehicle;
 
-class Connection {
+class Context {
    public:
-        std::vector<Vehicle*> vehicleList;
+        std::vector<Vehicle> vehicleList;
         zenoh::Session &session;
 
-        Connection(zenoh::Session &session) : session{session} {};
-        // void publish();
+        Context(zenoh::Session &session) : session{session} {};
+        void publish();
+        void addVehicle(boost::shared_ptr<cc::Vehicle> vehicle);
+
 };
 
 class Vehicle {
     
-    Connection& connection;
+    Context& context;
     boost::shared_ptr<cc::Vehicle> vehicle;
 
     std::vector<zenoh::Subscriber<void>> subscribers;
@@ -50,7 +52,6 @@ class Vehicle {
     void bindPublishers();
 
     public:
-        Vehicle(Connection &connection, boost::shared_ptr<cc::Vehicle> vehicle);
+        Vehicle(Context &context, boost::shared_ptr<cc::Vehicle> vehicle);
         void publish();
 };
-
