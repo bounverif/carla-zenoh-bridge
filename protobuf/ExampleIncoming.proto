@@ -1,4 +1,4 @@
-syntax = "proto3"
+syntax = "proto3";
 
 message VehicleIncoming {
 
@@ -9,11 +9,11 @@ message VehicleIncoming {
     int32 gear = 5;
     bool handbrake = 6;
     bool reverse = 7;
-    bool manual-gear-shift = 8;
+    bool manual_gear_shift = 8;
 
 }
 
 message Incoming {
 
-    repeated message VehicleIncoming = 1;
+    repeated VehicleIncoming vehicles = 1;
 }

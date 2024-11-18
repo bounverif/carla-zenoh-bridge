@@ -1,4 +1,4 @@
-syntax = "proto3"
+syntax = "proto3";
 
 message Vector3D {
     
@@ -25,5 +25,5 @@ message VehicleOutgoing {
 
 message Outgoing {
 
-    repeated VehicleOutgoing = 1;
+    repeated VehicleOutgoing vehicles = 1;
 }
