@@ -1,7 +1,3 @@
-#ifndef ZENOHCXX_ZENOHC
-#define ZENOHCXX_ZENOHC
-#endif
-
 #include <iostream>
 #include <random>
 #include <sstream>

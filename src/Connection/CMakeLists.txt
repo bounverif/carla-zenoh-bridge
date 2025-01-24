@@ -1,0 +1,9 @@
+add_library(Connection Connection.cpp listeners.cpp)
+
+target_link_libraries(Connection PUBLIC 
+    zenohcxx::zenohc
+)
+
+target_include_directories(Connection PUBLIC 
+    ${PROJECT_SOURCE_DIR}/src/Connection
+)

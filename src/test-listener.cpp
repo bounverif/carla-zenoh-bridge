@@ -5,7 +5,6 @@
 
 #include <carla/geom/Vector3D.h>
 
-#define ZENOHCXX_ZENOHC
 #include "zenoh.hxx"
 
 namespace cg = carla::geom;
