@@ -4,7 +4,6 @@
 #include <thread>
 #include <chrono>
 
-#define ZENOHCXX_ZENOHC
 #include "zenoh.hxx"
 
 using namespace zenoh;

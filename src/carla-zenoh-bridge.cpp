@@ -21,7 +21,7 @@ int main() {
         TODO Add proper config file support:
             [] .yml or .json
     */
-    std::ifstream configFile("config.txt");
+    std::ifstream configFile("../config.txt");
     
     if (!configFile.is_open()){
         std::cerr << "Could not open config file" << std::endl;
