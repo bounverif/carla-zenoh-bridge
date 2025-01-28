@@ -66,8 +66,23 @@ FROM ubuntu:20.04 AS bridge
 WORKDIR /home
 RUN <<EOF
 apt-get update
-apt-get -y install git
+apt-get -y install git zip 
+DEBIAN_FRONTEND=noninteractive apt-get -y install cmake
 EOF
 RUN git clone https://github.com/bounverif/carla-zenoh-bridge.git
-COPY --from=builder /home/carla/Examples/CppClient/libcarla-install ./carla-zenoh-bridge/
+COPY --from=builder /home/carla/Examples/CppClient/libcarla-install ./carla-zenoh-bridge/libcarla-install
+# install protobuf 29.3
+RUN <<EOF
+apt-get install -y g++
+git clone --depth=1 --branch=v29.3 https://github.com/protocolbuffers/protobuf.git
+cd protobuf
+git submodule update --init --recursive
+cmake . -DCMAKE_CXX_STANDARD=17
+cmake --build .
+# ctest --verbose
+cmake --install .
+EOF
+WORKDIR /home/carla-zenoh-bridge
+
+
 
