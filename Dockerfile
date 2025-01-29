@@ -1,5 +1,5 @@
 # libcarla build stage
-FROM ubuntu:20.04 AS builder
+FROM ubuntu:20.04 AS libcarla-builder
 WORKDIR /home
 
 
@@ -62,27 +62,66 @@ cd Examples/CppClient
 make
 EOF
 
-FROM ubuntu:20.04 AS bridge
+FROM ubuntu:20.04 AS protobuf-builder
 WORKDIR /home
 RUN <<EOF
 apt-get update
-apt-get -y install git zip 
-DEBIAN_FRONTEND=noninteractive apt-get -y install cmake
+DEBIAN_FRONTEND=noninteractive apt-get install -y g++ git cmake
 EOF
-RUN git clone https://github.com/bounverif/carla-zenoh-bridge.git
-COPY --from=builder /home/carla/Examples/CppClient/libcarla-install ./carla-zenoh-bridge/libcarla-install
-# install protobuf 29.3
 RUN <<EOF
-apt-get install -y g++
 git clone --depth=1 --branch=v29.3 https://github.com/protocolbuffers/protobuf.git
 cd protobuf
 git submodule update --init --recursive
+EOF
+RUN <<EOF
+cd protobuf
 cmake . -DCMAKE_CXX_STANDARD=17
 cmake --build .
 # ctest --verbose
+EOF
+
+FROM ubuntu:20.04 AS carla-zenoh-bridge
+WORKDIR /home
+RUN <<EOF
+apt-get update
+DEBIAN_FRONTEND=noninteractive apt-get install -y curl git zip cmake ninja-build
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs >> rustup-init.sh
+chmod 755 ./rustup-init.sh
+./rustup-init.sh -yq
+EOF
+
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+RUN rustup update
+
+RUN <<EOF
+git clone --depth=1 --branch=1.1.1 https://github.com/eclipse-zenoh/zenoh-c.git
+mkdir -p build
+EOF
+RUN <<EOF
+cd build
+apt-get install -y g++
+cmake ../zenoh-c -GNinja
+cmake --build .
+cmake --build . --target install
+EOF
+# install zenohcpp
+WORKDIR /home
+RUN <<EOF
+git clone --depth=1 --branch=1.1.1 https://github.com/eclipse-zenoh/zenoh-cpp.git
+mkdir zenoh-cpp/build && cd zenoh-cpp/build
+cmake .. -DZENOHCXX_ZENOHC=ON -DZENOHCXX_ZENOHPICO=OFF
 cmake --install .
 EOF
+
+WORKDIR /home
+RUN git clone https://github.com/bounverif/carla-zenoh-bridge.git
+COPY --from=libcarla-builder /home/carla/Examples/CppClient/libcarla-install ./carla-zenoh-bridge/libcarla-install
+COPY --from=protobuf-builder /home/protobuf ./protobuf
+WORKDIR /home/protobuf
+RUN cmake .. --install .
 WORKDIR /home/carla-zenoh-bridge
+
 
 
 

@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+package outgoing;
+
 message Vector3D {
     
         float x = 1;
@@ -14,16 +16,17 @@ message Transform {
     Vector3D rotation = 2;
 }
 
-message VehicleOutgoing {
+message Vehicle {
 
-    string name = 1;
-    Vector3D acceleration = 2;
-    Vector3D angularVelocity = 3;
-    Transform transform = 4;
-    Vector3D velocity = 5;
+    int32 id = 1;
+    string name = 2;
+    Vector3D acceleration = 3;
+    Vector3D angularVelocity = 4;
+    Transform transform = 5;
+    Vector3D velocity = 6;
 }
 
-message Outgoing {
+message MessagePack {
 
-    repeated VehicleOutgoing vehicles = 1;
+    repeated Vehicle vehicles = 1;
 }

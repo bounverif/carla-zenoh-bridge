@@ -22,8 +22,19 @@
 */
 
 
+Context::Context(zenoh::Session &session) 
+: session{session} {
+    using namespace std::placeholders;
+    auto bin_listener = std::bind(&Context::listen, this, _1);
+    auto in_listener = this->session.declare_subscriber("carla/in", bin_listener, zenoh::closures::none);
+};
+
 void Context::publish(){
     for (auto &vehicle: this->vehicleList) vehicle.publish();
+}
+
+void Context::listen(const zenoh::Sample &sample){
+
 }
 
 Vehicle::Vehicle(Context &context, boost::shared_ptr<cc::Vehicle> vehicle) 

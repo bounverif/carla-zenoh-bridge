@@ -30,8 +30,9 @@ class Context {
         std::vector<Vehicle> vehicleList;
         zenoh::Session &session;
 
-        Context(zenoh::Session &session) : session{session} {};
+        Context(zenoh::Session &session);
         void publish();
+        void listen(const zenoh::Sample &sample);
         void addVehicle(boost::shared_ptr<cc::Vehicle> vehicle);
 
 };
