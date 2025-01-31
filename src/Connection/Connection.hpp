@@ -6,6 +6,7 @@
 #include <thread>
 #include <tuple>
 #include <vector>
+#include <memory>
 
 #include <carla/client/ActorBlueprint.h>
 #include <carla/client/BlueprintLibrary.h>
@@ -22,18 +23,28 @@
 namespace cc = carla::client;
 
 #include <zenoh.hxx>
+#include "ExampleIncoming.pb.h"
+#include "ExampleOutgoing.pb.h"
 
 class Vehicle;
 
 class Context {
    public:
-        std::vector<Vehicle> vehicleList;
+        std::vector<boost::shared_ptr<cc::Vehicle>> vehicleList;
         zenoh::Session &session;
+        std::shared_ptr<zenoh::Subscriber<void>> subscriber;
+        std::shared_ptr<zenoh::Publisher> publisher;
+        cc::Client &client;
 
-        Context(zenoh::Session &session);
+        Context(zenoh::Session &session, cc::Client &client);
         void publish();
         void listen(const zenoh::Sample &sample);
         void addVehicle(boost::shared_ptr<cc::Vehicle> vehicle);
+    private:
+        void applyControls(const incoming::Vehicle &vehicle);
+        void setVector(outgoing::Vector3D &vectorMsg, carla::geom::Vector3D vector);
+        void setTransform(outgoing::Transform &transformMsg, carla::geom::Transform transform);
+        void setRotation(outgoing::Rotation &rotMsg, carla::geom::Rotation rotation);
 
 };
 

@@ -42,7 +42,10 @@ target_link_libraries(carla-zenoh-bridge PUBLIC
     DetourCrowd
     zenohcxx::zenohc
 )
-target_include_directories(carla-zenoh-bridge PRIVATE ${SRC_DIR}/Connection)
+target_include_directories(carla-zenoh-bridge PRIVATE 
+    ${SRC_DIR}/Connection
+    ExampleIncoming
+)
                 
 add_executable(spawner ${SRC_DIR}/spawner.cpp)
 target_link_libraries(spawner PUBLIC
@@ -83,5 +86,5 @@ target_link_libraries(test-listener PUBLIC
     Detour
     DetourCrowd
     zenohcxx::zenohc
-    PRIVATE ExampleIncoming
+    PRIVATE ExampleOutgoing
 )

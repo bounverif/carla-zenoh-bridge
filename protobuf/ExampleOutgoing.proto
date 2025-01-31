@@ -10,10 +10,16 @@ message Vector3D {
 
 }
 
+message Rotation {
+        float pitch = 1;
+        float yaw = 2;
+        float roll = 3;
+}
+
 message Transform {
 
     Vector3D position = 1;
-    Vector3D rotation = 2;
+    Rotation rotation = 2;
 }
 
 message Vehicle {

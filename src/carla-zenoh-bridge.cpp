@@ -57,11 +57,11 @@ int main() {
     zenoh::Config config = zenoh::Config::create_default();
     auto session = zenoh::Session::open(std::move(config));
 
-    Context context(session);
-
-
     auto client = cc::Client(host, port);
     client.SetTimeout(40s);
+
+    Context context(session, client);
+
 
     auto world = client.GetWorld();
 
