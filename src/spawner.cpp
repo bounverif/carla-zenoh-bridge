@@ -26,7 +26,7 @@ using namespace std::chrono_literals;
 using namespace std::string_literals;
 
 #define EXPECT_TRUE(pred) if (!(pred)) { throw std::runtime_error(#pred); }
-#define NUM_VEHICLES 2
+#define NUM_VEHICLES 1
 
 /// Pick a random element from @a range.
 template <typename RangeT, typename RNG>

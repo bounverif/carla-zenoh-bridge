@@ -2,29 +2,35 @@
 #include <string>
 #include <thread>
 #include <chrono>
-
-#include <carla/geom/Vector3D.h>
+#include <string>
 
 #include "zenoh.hxx"
+#include "ExampleOutgoing.pb.h"
 
-namespace cg = carla::geom;
 using namespace std::chrono_literals;
 
+outgoing::MessagePack message;
+
 void listener(const zenoh::Sample &sample){
-    float payload = sample.get_payload().deserialize<float>();
-    std::cout << "Payload: " << payload << std::endl;
+    // float payload = sample.get_payload().deserialize<float>();
+    std::string payload = sample.get_payload().as_string();
+    message.ParseFromString(payload);
+    for (int i = 0; i < message.vehicles_size(); i++){
+        const outgoing::Vehicle &vehicle = message.vehicles(i);
+        const outgoing::Vector3D velocity = vehicle.velocity();
+        const outgoing::Vector3D position = vehicle.transform().position();
+        std::cout << "Vehicle at (" << position.x() << ", " << position.y() << ", " << position.z() << ")" << std::endl;
+        std::cout << "Speed of (" << velocity.x() << ", " << velocity.y() << ", " << velocity.z() << ")" << std::endl;
+    }
+
 }
 
 int main(){
-    int ActorId;
-    std::cin >> ActorId;
-
-    std::string ChannelPrefix = "carla/" + std::to_string(ActorId);
 
     zenoh::Config config = zenoh::Config::create_default();
     auto session = zenoh::Session::open(std::move(config));
 
-    auto AcclListen = session.declare_subscriber(ChannelPrefix + "/acceleration", &listener, zenoh::closures::none);
+    auto AcclListen = session.declare_subscriber("carla/out", &listener, zenoh::closures::none);
 
     while (true){
         std::this_thread::sleep_for(100ms);

@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package incoming;
+
+message Vehicle {
+
+    int32 id = 1;
+    string name = 2;
+    float throttle = 3;
+    float brake = 4;
+    float steer = 5;
+    int32 gear = 6;
+    bool handbrake = 7;
+    bool reverse = 8;
+    bool manual_gear_shift = 9;
+
+}
+
+message MessagePack {
+
+    repeated Vehicle vehicles = 1;
+}
