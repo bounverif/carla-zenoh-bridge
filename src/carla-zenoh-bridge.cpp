@@ -15,13 +15,13 @@ using namespace std::chrono_literals;
 
 std::map<std::string, std::string> config;
 
-int main() {
+int parseConfigFile(const std::string &filePath){
     // parse the config file
     /*
         TODO Add proper config file support:
             [] .yml or .json
     */
-    std::ifstream configFile("../config.txt");
+    std::ifstream configFile(filePath);
     
     if (!configFile.is_open()){
         std::cerr << "Could not open config file" << std::endl;
@@ -33,6 +33,12 @@ int main() {
         std::size_t pos = line.find('=');
         config.insert({line.substr(0, pos), line.substr(pos + 1)});
     }
+    return 0;
+}
+
+int main() {
+
+    if (parseConfigFile("../config.txt") == 1) return;
 
     std::string host = "localhost";
     uint16_t port = 2000u;
@@ -70,16 +76,15 @@ int main() {
     settings.synchronous_mode = true;
     world.ApplySettings(settings, 1s);
 
-    auto temp_vehiclesList = world.GetVehiclesLightStates();
-    for (size_t i = 0; i < temp_vehiclesList.size(); i++){
-        auto actorId = temp_vehiclesList[i].first;
-        std::cout << "Connecting to actor with ID: " << actorId << std::endl;
+    auto vehicleLightStatesList = world.GetVehiclesLightStates();
+    for (size_t i = 0; i < vehicleLightStatesList.size(); i++){
+        auto vehicleActorID = vehicleLightStatesList[i].first;
+        std::cout << "Connecting to actor with ID: " << vehicleActorID << std::endl;
 
-        auto actor = world.GetActor(actorId);
-        std::cout << i << std::endl;
-        boost::shared_ptr<cc::Vehicle> vehicle = boost::static_pointer_cast<cc::Vehicle>(actor);
+        auto vehicleActorPtr = world.GetActor(vehicleActorID);
+        boost::shared_ptr<cc::Vehicle> vehicle = boost::static_pointer_cast<cc::Vehicle>(vehicleActorPtr);
         
-        context.addVehicle(vehicle);
+        context.addVehicleToVehicleList(vehicle);
     }
 
 

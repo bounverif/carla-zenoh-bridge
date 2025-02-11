@@ -1,5 +1,3 @@
-#include <functional>
-
 #include "Connection.hpp"
 
 /*
@@ -24,8 +22,10 @@
 Context::Context(zenoh::Session &session, cc::Client &client) 
 : session{session}, client{client} {
     using namespace std::placeholders;
-    auto bin_listener = std::bind(&Context::listen, this, _1);
-    auto sub = this->session.declare_subscriber("carla/in", bin_listener, zenoh::closures::none);
+    auto listenerObjectBind = std::bind(&Context::listenerCallback, this, _1);
+    auto sub = this->session.declare_subscriber("carla/in", listenerObjectBind, zenoh::closures::none);
+    
+    // make sure subscriber and publisher are initialized correctly
     static_assert(std::is_same_v<decltype(sub), zenoh::Subscriber<void>>,
                     "Unexpected error at subscriber initialization");
     this->subscriber = std::make_shared<decltype(sub)>(std::move(sub));
@@ -35,21 +35,21 @@ Context::Context(zenoh::Session &session, cc::Client &client)
     this->publisher = std::make_shared<decltype(pub)>(std::move(pub));
 };
 
-void Context::setVector(outgoing::Vector3D &vectorMsg, carla::geom::Vector3D vector){
-    vectorMsg.set_x(vector.x);
-    vectorMsg.set_y(vector.y);
-    vectorMsg.set_z(vector.z);
+void Context::VectorToMsg(outgoing::Vector3D &messageTarget, carla::geom::Vector3D vector){
+    messageTarget.set_x(vector.x);
+    messageTarget.set_y(vector.y);
+    messageTarget.set_z(vector.z);
 }
 
-void Context::setRotation(outgoing::Rotation &rotMsg, carla::geom::Rotation rotation){
-    rotMsg.set_pitch(rotation.pitch);
-    rotMsg.set_yaw(rotation.yaw);
-    rotMsg.set_roll(rotation.roll);
+void Context::RotationToMsg(outgoing::Rotation &messageTarget, carla::geom::Rotation rotation){
+    messageTarget.set_pitch(rotation.pitch);
+    messageTarget.set_yaw(rotation.yaw);
+    messageTarget.set_roll(rotation.roll);
 }
 
-void Context::setTransform(outgoing::Transform &transformMsg, carla::geom::Transform transform){
-    this->setVector(*(transformMsg.mutable_position()), transform.location);
-    this->setRotation(*(transformMsg.mutable_rotation()), transform.rotation);
+void Context::TransformToMsg(outgoing::Transform &messageTarget, carla::geom::Transform transform){
+    this->VectorToMsg(*(messageTarget.mutable_position()), transform.location);
+    this->RotationToMsg(*(messageTarget.mutable_rotation()), transform.rotation);
 }
 
 void Context::publish(){
@@ -57,19 +57,20 @@ void Context::publish(){
     for (auto &vehicle: this->vehicleList) {
         outgoing::Vehicle *vehicleMsg = message.add_vehicles();
         vehicleMsg->set_id(vehicle->GetId());
+        // TODO: name is useless, remove from message structure
         vehicleMsg->set_name("name");
-        this->setVector(*(vehicleMsg->mutable_acceleration()), vehicle->GetAcceleration());
-        this->setVector(*(vehicleMsg->mutable_angularvelocity()), vehicle->GetAngularVelocity());
-        this->setTransform(*(vehicleMsg->mutable_transform()), vehicle->GetTransform());
-        this->setVector(*(vehicleMsg->mutable_velocity()), vehicle->GetVelocity());
+        this->VectorToMsg(*(vehicleMsg->mutable_acceleration()), vehicle->GetAcceleration());
+        this->VectorToMsg(*(vehicleMsg->mutable_angularvelocity()), vehicle->GetAngularVelocity());
+        this->TransformToMsg(*(vehicleMsg->mutable_transform()), vehicle->GetTransform());
+        this->VectorToMsg(*(vehicleMsg->mutable_velocity()), vehicle->GetVelocity());
     }
     std::string messageAsStr = message.SerializeAsString();
     this->publisher->put(messageAsStr);
 }
 
-void Context::applyControls(const incoming::Vehicle &vehicle){
-    auto vehicleActorPtr = this->client.GetWorld().GetActor(carla::ActorId(vehicle.id()));
-    auto vehiclePtr = boost::static_pointer_cast<cc::Vehicle>(vehicleActorPtr);
+void Context::applyControlsToVehicle(const incoming::Vehicle &vehicle){
+    auto vehicleAsActorPtr = this->client.GetWorld().GetActor(carla::ActorId(vehicle.id()));
+    auto vehiclePtr = boost::static_pointer_cast<cc::Vehicle>(vehicleAsActorPtr);
 
     cc::Vehicle::Control control;
     control.throttle = vehicle.throttle();
@@ -84,20 +85,22 @@ void Context::applyControls(const incoming::Vehicle &vehicle){
 
 }
 
-void Context::listen(const zenoh::Sample &sample){
+// This function is invoked whenever a packet is received from the network.
+// Currently, messages are monolithic; thus at each receive, controls are applied
+// to all vehicles contained within the message.
+
+void Context::listenerCallback(const zenoh::Sample &sample){
     std::string payload = sample.get_payload().as_string();
     incoming::MessagePack message;
     message.ParseFromString(payload);
     for (int i = 0; i < message.vehicles_size(); i++){
         // apply controls for each vehicle
         const incoming::Vehicle &vehicle = message.vehicles(i);
-        this->applyControls(vehicle);
+        this->applyControlsToVehicle(vehicle);
     }
 
 }
 
-
-
-void Context::addVehicle(boost::shared_ptr<cc::Vehicle> vehicle){
+void Context::addVehicleToVehicleList(boost::shared_ptr<cc::Vehicle> vehicle){
     this->vehicleList.push_back(std::move(vehicle));
 }

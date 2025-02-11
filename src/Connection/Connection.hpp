@@ -7,6 +7,7 @@
 #include <tuple>
 #include <vector>
 #include <memory>
+#include <functional>
 
 #include <carla/client/ActorBlueprint.h>
 #include <carla/client/BlueprintLibrary.h>
@@ -26,40 +27,41 @@ namespace cc = carla::client;
 #include "ExampleIncoming.pb.h"
 #include "ExampleOutgoing.pb.h"
 
-class Vehicle;
+/*
+        This class is the main interface responsible from the communication between CARLA
+    simulator and Zenoh network. 
+        Its aim is such that all attempts at outside communication between devices in the Zenoh
+    network and the simulator must go through this class; that is, for any outside actor, communication
+    through Zenoh network should be enough and these outside actors must not directly invoke CARLA API.
+    Currently, all communications to the simulator must be sent at "carla/in" and all communications from 
+    the simulator must be listened at "carla/out".
+
+    Fields:
+    - Session: Zenoh session to connect to. 
+    - Client: Connection instance to CARLA Client.
+        Session and Client must be initialized before invoking the constructor. 
+    - Subsciber & Publisher: (Smart) pointers to subscriber and publisher objects.
+    - vehicleList: List of vehicles currently connected to.
+        This list is not populated within a member function. Currently, every vehicle in the simulation
+        is automatically added to this list in carla-zenoh-bridge.cpp, but this may be subject to change.
+*/
 
 class Context {
    public:
-        std::vector<boost::shared_ptr<cc::Vehicle>> vehicleList;
         zenoh::Session &session;
         std::shared_ptr<zenoh::Subscriber<void>> subscriber;
         std::shared_ptr<zenoh::Publisher> publisher;
         cc::Client &client;
+        std::vector<boost::shared_ptr<cc::Vehicle>> vehicleList;
 
         Context(zenoh::Session &session, cc::Client &client);
         void publish();
-        void listen(const zenoh::Sample &sample);
-        void addVehicle(boost::shared_ptr<cc::Vehicle> vehicle);
+        void listenerCallback(const zenoh::Sample &sample);
+        void addVehicleToVehicleList(boost::shared_ptr<cc::Vehicle> vehicle);
     private:
-        void applyControls(const incoming::Vehicle &vehicle);
-        void setVector(outgoing::Vector3D &vectorMsg, carla::geom::Vector3D vector);
-        void setTransform(outgoing::Transform &transformMsg, carla::geom::Transform transform);
-        void setRotation(outgoing::Rotation &rotMsg, carla::geom::Rotation rotation);
-
-};
-
-class Vehicle {
-    
-    Context& context;
-    boost::shared_ptr<cc::Vehicle> vehicle;
-
-    std::vector<zenoh::Subscriber<void>> subscribers;
-    std::vector<zenoh::Publisher> publishers;
-
-    void bindSubscribers();
-    void bindPublishers();
-
-    public:
-        Vehicle(Context &context, boost::shared_ptr<cc::Vehicle> vehicle);
-        void publish();
+        void applyControlsToVehicle(const incoming::Vehicle &vehicle);
+        // Converter methods for CARLA API's geometric structures into corresponding message formats.
+        void VectorToMsg(outgoing::Vector3D &vectorMsg, carla::geom::Vector3D vector);
+        void TransformToMsg(outgoing::Transform &transformMsg, carla::geom::Transform transform);
+        void RotationToMsg(outgoing::Rotation &rotMsg, carla::geom::Rotation rotation);
 };

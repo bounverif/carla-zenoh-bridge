@@ -11,8 +11,8 @@ using namespace std::chrono_literals;
 
 outgoing::MessagePack message;
 
+// example function for listening carla/out.
 void listener(const zenoh::Sample &sample){
-    // float payload = sample.get_payload().deserialize<float>();
     std::string payload = sample.get_payload().as_string();
     message.ParseFromString(payload);
     for (int i = 0; i < message.vehicles_size(); i++){

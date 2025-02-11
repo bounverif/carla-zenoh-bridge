@@ -21,9 +21,6 @@ std::uniform_real_distribution<> df(0.0, 1.0);
 std::uniform_int_distribution<> di(1, 6);
 std::uniform_int_distribution<> db(0, 1);
 
-/*
-    FIXME Extreme memory congestion when simulator is shut down
-*/
 
 std::vector<int> actorsList;
 std::string messageAsStr;
@@ -40,6 +37,7 @@ void generateVehicleData(incoming::Vehicle* vehicle, int actorId){
     vehicle->set_manual_gear_shift(0);
 }
 
+// generate random control input and fill the message with this data.
 void generateMessage(incoming::MessagePack* message){
     for (auto actor : actorsList){
         generateVehicleData(message->add_vehicles(), actor);
@@ -76,40 +74,5 @@ int main(){
         generateMessage(&message);
         publishMessage(ctl_publisher, &message);
         std::cout << "Instance : " << i << std::endl;
-        /*
-        std::cout << "-------------- Instance " << i << " -----------------" << std::endl;
-        float throttle = df(e);
-        p_throttle.put(throttle);
-        std::cout << "Throttle: " << throttle << std::endl;
-
-        float steer = df(e);
-        p_steer.put(steer);
-        std::cout << "Steer: " << steer << std::endl;
-
-        float brake = df(e);
-        p_brake.put(brake);
-        std::cout << "Brake: " << brake << std::endl;
-
-        int handbrake = i < 10000 ? 1 : 0;
-        p_handbrake.put(handbrake);
-        std::cout << "Handbrake: " << handbrake << std::endl;
-
-        int reverse = 0;
-        p_reverse.put(reverse);
-        std::cout << "Reverse: " << reverse << std::endl;
-
-        int gear = di(e);
-        p_gear.put(gear);
-        std::cout << "Gear: " << gear << std::endl;
-
-        int mgs = 0;
-        p_mgs.put(mgs);
-        std::cout << "Manual gear shift: " << mgs << std::endl;
-        
-        // std::cout << "Handbrake: " << db(e) << std::endl;
-        // std::cout << "Reverse: " << db(e) << std::endl;
-        // std::cout << "Gear: " << di(e) << std::endl;
-
-        */
     }
 }
